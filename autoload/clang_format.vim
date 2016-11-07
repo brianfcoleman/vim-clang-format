@@ -44,25 +44,30 @@ endfunction
 function! s:stringize_options(opts) abort
     let dict_type = type({})
     let keyvals = map(items(a:opts), 's:create_keyvals(v:val[0], v:val[1])')
-    return join(keyvals, ',')
+    return join(keyvals, ', ')
 endfunction
 
 function! s:build_extra_options()
     let extra_options = ""
 
-    let opts = copy(g:clang_format#style_options)
+    let opts = {}
+    if !empty(g:clang_format#style_options)
+        call extend(opts, g:clang_format#style_options)
+    endif
     if has_key(g:clang_format#filetype_style_options, &ft)
         call extend(opts, g:clang_format#filetype_style_options[&ft])
     endif
 
-    let extra_options .= ', ' . s:stringize_options(opts)
+    if !empty(opts)
+        let extra_options .= ', ' . s:stringize_options(opts)
+    endif
 
     return extra_options
 endfunction
 
 function! s:make_style_options()
     let extra_options = s:build_extra_options()
-    return printf("'{BasedOnStyle: %s, IndentWidth: %d, UseTab: %s%s}'",
+    return printf("\"{BasedOnStyle: %s, IndentWidth: %d, UseTab: %s%s}\"",
                         \ g:clang_format#code_style,
                         \ (exists('*shiftwidth') ? shiftwidth() : &l:shiftwidth),
                         \ &l:expandtab==1 ? "false" : "true",
